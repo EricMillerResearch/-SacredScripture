@@ -40,6 +40,11 @@ export default function App() {
   const [leadStatus, setLeadStatus] = useState('')
   const [adminLeads, setAdminLeads] = useState([])
   const [adminError, setAdminError] = useState('')
+  const [adminQuery, setAdminQuery] = useState('')
+  const [adminPage, setAdminPage] = useState(0)
+  const [adminTotal, setAdminTotal] = useState(0)
+  const [adminLoading, setAdminLoading] = useState(false)
+  const adminLimit = 10
 
   useEffect(() => {
     if (!token) return
@@ -106,11 +111,18 @@ export default function App() {
     setLead(outreachFields)
   }
 
-  async function loadLeads() {
+  async function loadLeads(page = adminPage, query = adminQuery) {
     setAdminError('')
-    const response = await fetch(`${API_BASE}/admin/leads`, {
+    setAdminLoading(true)
+    const params = new URLSearchParams({
+      limit: adminLimit.toString(),
+      offset: String(page * adminLimit),
+    })
+    if (query) params.set('q', query)
+    const response = await fetch(`${API_BASE}/admin/leads?${params.toString()}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
+    setAdminLoading(false)
     if (!response.ok) {
       const data = await response.json().catch(() => ({}))
       setAdminError(data.detail || 'Unable to load leads.')
@@ -118,6 +130,21 @@ export default function App() {
     }
     const data = await response.json()
     setAdminLeads(data.leads || [])
+    setAdminTotal(data.total || 0)
+  }
+
+  async function markContacted(email) {
+    const response = await fetch(`${API_BASE}/admin/leads/contacted`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ email }),
+    })
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+      setAdminError(data.detail || 'Unable to update lead.')
+      return
+    }
+    await loadLeads()
   }
 
   if (!token) {
@@ -255,10 +282,25 @@ export default function App() {
               <h4>Admin Leads</h4>
               <p>View recent demo requests or download CSV.</p>
               <div className="lead-actions">
-                <button type="button" onClick={loadLeads}>Load Leads</button>
+                <input
+                  className="lead-search"
+                  placeholder="Search by email or church"
+                  value={adminQuery}
+                  onChange={(e) => setAdminQuery(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => { setAdminPage(0); loadLeads(0, adminQuery) }}
+                  disabled={adminLoading}
+                >
+                  {adminLoading ? 'Loading...' : 'Search'}
+                </button>
                 <a className="download" href={`${API_BASE}/admin/leads.csv`} target="_blank" rel="noreferrer">Download CSV</a>
               </div>
               {adminError && <div className="lead-status">{adminError}</div>}
+              {adminLeads.length === 0 && !adminLoading && (
+                <div className="lead-empty">No leads yet.</div>
+              )}
               {adminLeads.length > 0 && (
                 <div className="lead-table">
                   <div className="lead-row lead-head">
@@ -266,6 +308,7 @@ export default function App() {
                     <span>Church</span>
                     <span>Email</span>
                     <span>Role</span>
+                    <span>Status</span>
                   </div>
                   {adminLeads.map((lead, idx) => (
                     <div className="lead-row" key={`${lead.email}-${idx}`}>
@@ -273,8 +316,32 @@ export default function App() {
                       <span>{lead.church || '-'}</span>
                       <span>{lead.email || '-'}</span>
                       <span>{lead.role || '-'}</span>
+                      <span>
+                        {lead.contacted_at ? 'Contacted' : (
+                          <button className="mini" type="button" onClick={() => markContacted(lead.email)}>Mark</button>
+                        )}
+                      </span>
                     </div>
                   ))}
+                  <div className="lead-pagination">
+                    <button
+                      className="mini"
+                      type="button"
+                      onClick={() => { const p = Math.max(0, adminPage - 1); setAdminPage(p); loadLeads(p, adminQuery) }}
+                      disabled={adminPage === 0 || adminLoading}
+                    >
+                      Prev
+                    </button>
+                    <span>Page {adminPage + 1} of {Math.max(1, Math.ceil(adminTotal / adminLimit))}</span>
+                    <button
+                      className="mini"
+                      type="button"
+                      onClick={() => { const p = adminPage + 1; setAdminPage(p); loadLeads(p, adminQuery) }}
+                      disabled={(adminPage + 1) * adminLimit >= adminTotal || adminLoading}
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

@@ -48,3 +48,7 @@ class LeadRequest(BaseModel):
     church: str = Field(min_length=2)
     role: str = Field(min_length=2)
     consent: bool = False
+
+
+class LeadContactRequest(BaseModel):
+    email: EmailStr

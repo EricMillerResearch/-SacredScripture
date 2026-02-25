@@ -39,8 +39,12 @@ ul { margin:0; padding-left:18px; }
 .lead-status { font-size:.9rem; color:#b7fff4; background:rgba(45,212,191,.12); border:1px solid rgba(45,212,191,.35); padding:8px 10px; border-radius:8px; }
 .lead-actions { display:flex; gap:10px; align-items:center; }
 .lead-table { display:flex; flex-direction:column; gap:6px; }
-.lead-row { display:grid; grid-template-columns:120px 1fr 1fr 120px; gap:10px; font-size:.9rem; padding:6px 8px; border-radius:8px; background:rgba(10,17,20,.5); }
+.lead-row { display:grid; grid-template-columns:120px 1fr 1fr 120px 120px; gap:10px; font-size:.9rem; padding:6px 8px; border-radius:8px; background:rgba(10,17,20,.5); }
 .lead-head { font-weight:600; background:rgba(255,255,255,.08); }
+.lead-empty { opacity:.7; font-size:.9rem; padding:6px 2px; }
+.lead-search { min-width:180px; }
+.lead-pagination { display:flex; gap:10px; align-items:center; justify-content:flex-end; font-size:.85rem; opacity:.85; }
+.mini { padding:6px 10px; border-radius:8px; font-size:.8rem; background:#1a2a30; color:#e6fffb; border:1px solid rgba(255,255,255,.12); }
 @media (max-width: 980px) {
   .dashboard-layout { grid-template-columns:1fr; }
 }
