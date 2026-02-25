@@ -39,11 +39,12 @@ class DashboardOut(BaseModel):
     generation_count: int
     generation_limit: int
     generations: list[GenerationOut]
+    is_admin: bool = False
 
 
 class LeadRequest(BaseModel):
     name: str | None = None
     email: EmailStr
-    church: str | None = None
-    role: str | None = None
+    church: str = Field(min_length=2)
+    role: str = Field(min_length=2)
     consent: bool = False

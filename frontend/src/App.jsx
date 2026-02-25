@@ -38,6 +38,8 @@ export default function App() {
   const [previewUrl, setPreviewUrl] = useState('')
   const [lead, setLead] = useState(outreachFields)
   const [leadStatus, setLeadStatus] = useState('')
+  const [adminLeads, setAdminLeads] = useState([])
+  const [adminError, setAdminError] = useState('')
 
   useEffect(() => {
     if (!token) return
@@ -102,6 +104,20 @@ export default function App() {
     }
     setLeadStatus('Thanks! We will reach out shortly.')
     setLead(outreachFields)
+  }
+
+  async function loadLeads() {
+    setAdminError('')
+    const response = await fetch(`${API_BASE}/admin/leads`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+      setAdminError(data.detail || 'Unable to load leads.')
+      return
+    }
+    const data = await response.json()
+    setAdminLeads(data.leads || [])
   }
 
   if (!token) {
@@ -227,12 +243,42 @@ export default function App() {
             <button
               type="button"
               onClick={submitLead}
-              disabled={!lead.email || !lead.consent}
+              disabled={!lead.email || !lead.consent || !lead.church || !lead.role}
             >
               Request Demo
             </button>
             {leadStatus && <div className="lead-status">{leadStatus}</div>}
           </div>
+
+          {dashboard?.is_admin && (
+            <div className="lead-box">
+              <h4>Admin Leads</h4>
+              <p>View recent demo requests or download CSV.</p>
+              <div className="lead-actions">
+                <button type="button" onClick={loadLeads}>Load Leads</button>
+                <a className="download" href={`${API_BASE}/admin/leads.csv`} target="_blank" rel="noreferrer">Download CSV</a>
+              </div>
+              {adminError && <div className="lead-status">{adminError}</div>}
+              {adminLeads.length > 0 && (
+                <div className="lead-table">
+                  <div className="lead-row lead-head">
+                    <span>Date</span>
+                    <span>Church</span>
+                    <span>Email</span>
+                    <span>Role</span>
+                  </div>
+                  {adminLeads.map((lead, idx) => (
+                    <div className="lead-row" key={`${lead.email}-${idx}`}>
+                      <span>{lead.received_at ? new Date(lead.received_at).toLocaleDateString() : '-'}</span>
+                      <span>{lead.church || '-'}</span>
+                      <span>{lead.email || '-'}</span>
+                      <span>{lead.role || '-'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <h4>Previous Projects</h4>
           <ul>

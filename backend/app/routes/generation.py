@@ -27,6 +27,7 @@ def dashboard(current_user: User = Depends(get_current_user), db: Session = Depe
         status=status,
         generation_count=len(generations),
         generation_limit=generation_limit_for_plan(plan),
+        is_admin=bool(current_user.is_admin),
         generations=[
             GenerationOut(
                 id=g.id,
