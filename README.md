@@ -15,6 +15,9 @@ Guides:
 - `docs/DEPLOYMENT.md`
 - `docs/OUTREACH.md`
 
+Public demo assets:
+- Place `demo.mp4` and `demo.wav` in `frontend/public/demo/`
+
 ## Stack
 - **Frontend:** React + Vite (dark minimal dashboard UI)
 - **Backend:** FastAPI + SQLAlchemy

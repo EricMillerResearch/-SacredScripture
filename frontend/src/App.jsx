@@ -9,6 +9,10 @@ const onboardingSteps = [
   { title: 'Generate in minutes', detail: 'Render a loopable video + audio for services.' },
   { title: 'Download + use', detail: 'Drop it into ProPresenter, OBS, or MediaShout.' },
 ]
+const demoAssets = {
+  video: '/demo/demo.mp4',
+  audio: '/demo/demo.wav',
+}
 const nextSteps = [
   'Download the MP4 and audio for this week.',
   'Schedule the visuals in your worship software.',
@@ -188,6 +192,16 @@ export default function App() {
             ))}
           </div>
           <div className="trial-note">Start free, no setup required.</div>
+        </div>
+        <div className="card auth-demo">
+          <h2>Instant Demo</h2>
+          <p>Watch a real output and download it instantly.</p>
+          <video className="demo-video" src={demoAssets.video} controls />
+          <div className="demo-actions">
+            <a className="download" href={demoAssets.video} download>Download MP4</a>
+            <a className="download" href={demoAssets.audio} download>Download WAV</a>
+          </div>
+          <div className="demo-note">No login required. Works on any device.</div>
         </div>
       </div>
     )

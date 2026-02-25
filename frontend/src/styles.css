@@ -12,6 +12,7 @@ p { opacity:.8; margin:.25rem 0 0; }
 .auth-shell .card { padding:28px; }
 .auth-card { width:min(460px, 100%); }
 .auth-onboarding { width:min(420px, 100%); }
+.auth-demo { width:min(460px, 100%); display:flex; flex-direction:column; gap:10px; }
 form { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
 input, textarea, select, button { border-radius:10px; border:1px solid rgba(255,255,255,.18); background:#111927; color:#f5f7fa; padding:10px 12px; }
 button { cursor:pointer; background:linear-gradient(135deg, #2dd4bf, #fbbf24); border:none; color:#0a1114; font-weight:600; }
@@ -20,6 +21,9 @@ button.link { background:transparent; text-decoration:underline; color:#d6ddff; 
 .left-panel, .right-panel { padding:20px; display:flex; flex-direction:column; gap:10px; }
 video, .empty-preview { width:100%; aspect-ratio:16/9; border-radius:12px; border:1px solid rgba(255,255,255,.1); background:#05080e; }
 .empty-preview { display:flex; align-items:center; justify-content:center; opacity:.6; }
+.demo-video { width:100%; aspect-ratio:16/9; border-radius:12px; border:1px solid rgba(255,255,255,.1); background:#05080e; }
+.demo-actions { display:flex; gap:10px; }
+.demo-note { font-size:.9rem; opacity:.7; }
 .download { text-align:center; padding:10px; border-radius:8px; background:#1e2f54; color:#fff; text-decoration:none; }
 ul { margin:0; padding-left:18px; }
 .plan-box { margin-top:10px; background:#0d1628; border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:12px; }
