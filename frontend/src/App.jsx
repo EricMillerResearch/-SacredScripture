@@ -54,6 +54,12 @@ export default function App() {
       .catch(() => setToken(''))
   }, [token])
 
+  useEffect(() => {
+    if (dashboard?.is_admin) {
+      loadLeads(0, adminQuery)
+    }
+  }, [dashboard?.is_admin])
+
   async function handleAuth(e) {
     e.preventDefault()
     const endpoint = isRegister ? 'register' : 'login'
@@ -145,6 +151,15 @@ export default function App() {
       return
     }
     await loadLeads()
+  }
+
+  function emailLead(lead) {
+    const subject = encodeURIComponent('SacredScripture demo')
+    const body = encodeURIComponent(
+      `Hi${lead.name ? ` ${lead.name}` : ''},\n\nThanks for requesting a demo. Here is a link to schedule a quick walkthrough:\n\n[ADD_YOUR_DEMO_LINK]\n\nBlessings,\nSacredScripture Team`
+    )
+    window.location.href = `mailto:${lead.email}?subject=${subject}&body=${body}`
+    markContacted(lead.email)
   }
 
   if (!token) {
@@ -309,6 +324,7 @@ export default function App() {
                     <span>Email</span>
                     <span>Role</span>
                     <span>Status</span>
+                    <span>Action</span>
                   </div>
                   {adminLeads.map((lead, idx) => (
                     <div className="lead-row" key={`${lead.email}-${idx}`}>
@@ -320,6 +336,9 @@ export default function App() {
                         {lead.contacted_at ? 'Contacted' : (
                           <button className="mini" type="button" onClick={() => markContacted(lead.email)}>Mark</button>
                         )}
+                      </span>
+                      <span>
+                        <button className="mini" type="button" onClick={() => emailLead(lead)}>Email</button>
                       </span>
                     </div>
                   ))}
