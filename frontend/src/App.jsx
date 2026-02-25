@@ -1,0 +1,145 @@
+import { useEffect, useState } from 'react'
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+
+const moods = ['Peace', 'Hope', 'Reflection', 'Worship', 'Reverence']
+
+export default function App() {
+  const [token, setToken] = useState(localStorage.getItem('token') || '')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isRegister, setIsRegister] = useState(false)
+  const [dashboard, setDashboard] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [form, setForm] = useState({
+    verse_reference: 'Psalm 23:1',
+    verse_text: 'The Lord is my shepherd; I shall not want.',
+    mood: 'Peace',
+    duration_minutes: 3,
+  })
+  const [previewUrl, setPreviewUrl] = useState('')
+
+  useEffect(() => {
+    if (!token) return
+    fetch(`${API_BASE}/dashboard`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then(setDashboard)
+      .catch(() => setToken(''))
+  }, [token])
+
+  async function handleAuth(e) {
+    e.preventDefault()
+    const endpoint = isRegister ? 'register' : 'login'
+    const response = await fetch(`${API_BASE}/auth/${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    const data = await response.json()
+    if (!response.ok) return alert(data.detail || 'Authentication failed')
+    localStorage.setItem('token', data.access_token)
+    setToken(data.access_token)
+  }
+
+  async function handleGenerate() {
+    setLoading(true)
+    const response = await fetch(`${API_BASE}/dashboard/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(form),
+    })
+    const data = await response.json()
+    setLoading(false)
+    if (!response.ok) return alert(data.detail || 'Generation failed')
+    setPreviewUrl(`${API_BASE}${data.video_url}`)
+    const refreshed = await fetch(`${API_BASE}/dashboard`, { headers: { Authorization: `Bearer ${token}` } })
+    setDashboard(await refreshed.json())
+  }
+
+  async function openCheckout(plan) {
+    const response = await fetch(`${API_BASE}/billing/checkout/${plan}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const data = await response.json()
+    if (data.checkout_url) window.open(data.checkout_url, '_blank')
+  }
+
+  if (!token) {
+    return (
+      <div className="auth-shell">
+        <div className="card">
+          <h1>SacredScripture</h1>
+          <p>Verse-Based Ambient Worship Media</p>
+          <form onSubmit={handleAuth}>
+            <input placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+            <button type="submit">{isRegister ? 'Create account + 7-day trial' : 'Sign in'}</button>
+          </form>
+          <button className="link" onClick={() => setIsRegister(!isRegister)}>
+            {isRegister ? 'Already have an account? Sign in' : 'Need an account? Start free trial'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="app-shell">
+      <header>
+        <div>
+          <h1>SacredScripture</h1>
+          <p>Verse-Based Ambient Worship Media</p>
+        </div>
+        <button onClick={() => { localStorage.removeItem('token'); setToken('') }}>Logout</button>
+      </header>
+
+      <main className="dashboard-layout">
+        <section className="left-panel card">
+          <label>Verse Reference</label>
+          <input value={form.verse_reference} onChange={(e) => setForm({ ...form, verse_reference: e.target.value })} />
+          <label>Verse Text</label>
+          <textarea rows={5} value={form.verse_text} onChange={(e) => setForm({ ...form, verse_text: e.target.value })} />
+          <label>Mood</label>
+          <select value={form.mood} onChange={(e) => setForm({ ...form, mood: e.target.value })}>
+            {moods.map((m) => <option key={m}>{m}</option>)}
+          </select>
+          <label>Duration</label>
+          <select value={form.duration_minutes} onChange={(e) => setForm({ ...form, duration_minutes: Number(e.target.value) })}>
+            {[3, 5, 10].map((d) => <option value={d} key={d}>{d} minutes</option>)}
+          </select>
+          <button onClick={handleGenerate} disabled={loading}>{loading ? 'Rendering worship media...' : 'Generate'}</button>
+
+          {dashboard && (
+            <div className="plan-box">
+              <strong>{dashboard.plan.toUpperCase()}</strong>
+              <p>{dashboard.generation_count} / {dashboard.generation_limit} this month</p>
+              <div className="plan-buttons">
+                <button onClick={() => openCheckout('starter')}>Starter ($19)</button>
+                <button onClick={() => openCheckout('pro')}>Pro ($39)</button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <section className="right-panel card">
+          <h3>Live Preview</h3>
+          {previewUrl ? <video key={previewUrl} src={previewUrl} controls /> : <div className="empty-preview">Generate to preview video</div>}
+          {previewUrl && <a className="download" href={previewUrl} download>Download MP4</a>}
+
+          <h4>Previous Projects</h4>
+          <ul>
+            {(dashboard?.generations || []).map((g) => (
+              <li key={g.id}>
+                <a href={`${API_BASE}${g.video_path}`} target="_blank">{g.verse_reference} • {g.mood}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </main>
+    </div>
+  )
+}
