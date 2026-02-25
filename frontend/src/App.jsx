@@ -14,6 +14,13 @@ const nextSteps = [
   'Schedule the visuals in your worship software.',
   'Invite a team member to collaborate.',
 ]
+const outreachFields = {
+  name: '',
+  email: '',
+  church: '',
+  role: 'Worship Pastor',
+  consent: false,
+}
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '')
@@ -29,6 +36,7 @@ export default function App() {
     duration_minutes: 3,
   })
   const [previewUrl, setPreviewUrl] = useState('')
+  const [lead, setLead] = useState(outreachFields)
 
   useEffect(() => {
     if (!token) return
@@ -160,6 +168,52 @@ export default function App() {
                 <li key={step}>{step}</li>
               ))}
             </ol>
+          </div>
+
+          <div className="lead-box">
+            <h4>Request a Demo</h4>
+            <p>Share your details to receive a demo link and sample pack.</p>
+            <div className="lead-grid">
+              <input
+                placeholder="Name"
+                value={lead.name}
+                onChange={(e) => setLead({ ...lead, name: e.target.value })}
+              />
+              <input
+                placeholder="Email"
+                type="email"
+                value={lead.email}
+                onChange={(e) => setLead({ ...lead, email: e.target.value })}
+              />
+            </div>
+            <input
+              placeholder="Church name"
+              value={lead.church}
+              onChange={(e) => setLead({ ...lead, church: e.target.value })}
+            />
+            <select
+              value={lead.role}
+              onChange={(e) => setLead({ ...lead, role: e.target.value })}
+            >
+              {['Worship Pastor', 'Media Lead', 'Creative Director', 'Other'].map((role) => (
+                <option key={role}>{role}</option>
+              ))}
+            </select>
+            <label className="consent-row">
+              <input
+                type="checkbox"
+                checked={lead.consent}
+                onChange={(e) => setLead({ ...lead, consent: e.target.checked })}
+              />
+              <span>I agree to receive updates and a demo link.</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => alert('Thanks! We will reach out shortly.')}
+              disabled={!lead.email || !lead.consent}
+            >
+              Request Demo
+            </button>
           </div>
 
           <h4>Previous Projects</h4>

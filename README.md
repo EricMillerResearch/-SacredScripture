@@ -13,6 +13,7 @@ SacredScripture is a production-ready SaaS web app for churches to generate scri
 Guides:
 - `docs/ONBOARDING.md`
 - `docs/DEPLOYMENT.md`
+- `docs/OUTREACH.md`
 
 ## Stack
 - **Frontend:** React + Vite (dark minimal dashboard UI)
