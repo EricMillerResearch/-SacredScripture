@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     media_output_dir: str = 'generated_media'
     ffmpeg_binary: str = 'ffmpeg'
+    leads_output_file: str = 'leads.jsonl'
 
 
 settings = Settings()

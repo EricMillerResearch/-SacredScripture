@@ -37,6 +37,7 @@ export default function App() {
   })
   const [previewUrl, setPreviewUrl] = useState('')
   const [lead, setLead] = useState(outreachFields)
+  const [leadStatus, setLeadStatus] = useState('')
 
   useEffect(() => {
     if (!token) return
@@ -85,6 +86,22 @@ export default function App() {
     })
     const data = await response.json()
     if (data.checkout_url) window.open(data.checkout_url, '_blank')
+  }
+
+  async function submitLead() {
+    setLeadStatus('')
+    const response = await fetch(`${API_BASE}/leads`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lead),
+    })
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+      setLeadStatus(data.detail || 'Unable to submit. Please try again.')
+      return
+    }
+    setLeadStatus('Thanks! We will reach out shortly.')
+    setLead(outreachFields)
   }
 
   if (!token) {
@@ -209,11 +226,12 @@ export default function App() {
             </label>
             <button
               type="button"
-              onClick={() => alert('Thanks! We will reach out shortly.')}
+              onClick={submitLead}
               disabled={!lead.email || !lead.consent}
             >
               Request Demo
             </button>
+            {leadStatus && <div className="lead-status">{leadStatus}</div>}
           </div>
 
           <h4>Previous Projects</h4>

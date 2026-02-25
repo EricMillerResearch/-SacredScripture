@@ -36,6 +36,7 @@ ul { margin:0; padding-left:18px; }
 .lead-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .consent-row { display:flex; gap:8px; align-items:center; font-size:.9rem; opacity:.8; }
 .consent-row input { width:16px; height:16px; }
+.lead-status { font-size:.9rem; color:#b7fff4; background:rgba(45,212,191,.12); border:1px solid rgba(45,212,191,.35); padding:8px 10px; border-radius:8px; }
 @media (max-width: 980px) {
   .dashboard-layout { grid-template-columns:1fr; }
 }
