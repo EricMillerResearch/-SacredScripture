@@ -3,6 +3,17 @@ import { useEffect, useState } from 'react'
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 const moods = ['Peace', 'Hope', 'Reflection', 'Worship', 'Reverence']
+const onboardingSteps = [
+  { title: 'Create your account', detail: 'Sign up with an email and start your free trial.' },
+  { title: 'Choose a verse', detail: 'Paste a passage and select a worship mood.' },
+  { title: 'Generate in minutes', detail: 'Render a loopable video + audio for services.' },
+  { title: 'Download + use', detail: 'Drop it into ProPresenter, OBS, or MediaShout.' },
+]
+const nextSteps = [
+  'Download the MP4 and audio for this week.',
+  'Schedule the visuals in your worship software.',
+  'Invite a team member to collaborate.',
+]
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '')
@@ -71,7 +82,7 @@ export default function App() {
   if (!token) {
     return (
       <div className="auth-shell">
-        <div className="card">
+        <div className="card auth-card">
           <h1>SacredScripture</h1>
           <p>Verse-Based Ambient Worship Media</p>
           <form onSubmit={handleAuth}>
@@ -82,6 +93,18 @@ export default function App() {
           <button className="link" onClick={() => setIsRegister(!isRegister)}>
             {isRegister ? 'Already have an account? Sign in' : 'Need an account? Start free trial'}
           </button>
+        </div>
+        <div className="card auth-onboarding">
+          <h2>How It Works</h2>
+          <div className="step-list">
+            {onboardingSteps.map((step) => (
+              <div key={step.title} className="step-item">
+                <strong>{step.title}</strong>
+                <span>{step.detail}</span>
+              </div>
+            ))}
+          </div>
+          <div className="trial-note">Start free, no setup required.</div>
         </div>
       </div>
     )
@@ -129,6 +152,15 @@ export default function App() {
           <h3>Live Preview</h3>
           {previewUrl ? <video key={previewUrl} src={previewUrl} controls /> : <div className="empty-preview">Generate to preview video</div>}
           {previewUrl && <a className="download" href={previewUrl} download>Download MP4</a>}
+
+          <div className="next-steps">
+            <h4>Next Steps</h4>
+            <ol>
+              {nextSteps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+          </div>
 
           <h4>Previous Projects</h4>
           <ul>

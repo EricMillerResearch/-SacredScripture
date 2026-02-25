@@ -4,6 +4,16 @@
 
 SacredScripture is a production-ready SaaS web app for churches to generate scripture-based ambient worship videos with matching audio.
 
+## Church quick start
+- Create an account and start the free trial.
+- Choose a verse and a mood.
+- Generate a video.
+- Download and drop into ProPresenter, OBS, or MediaShout.
+
+Guides:
+- `docs/ONBOARDING.md`
+- `docs/DEPLOYMENT.md`
+
 ## Stack
 - **Frontend:** React + Vite (dark minimal dashboard UI)
 - **Backend:** FastAPI + SQLAlchemy
