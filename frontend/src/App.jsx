@@ -156,7 +156,7 @@ export default function App() {
   function emailLead(lead) {
     const subject = encodeURIComponent('SacredScripture demo')
     const body = encodeURIComponent(
-      `Hi${lead.name ? ` ${lead.name}` : ''},\n\nThanks for requesting a demo. Here is a link to schedule a quick walkthrough:\n\n[ADD_YOUR_DEMO_LINK]\n\nBlessings,\nSacredScripture Team`
+      `Hi${lead.name ? ` ${lead.name}` : ''},\n\nThanks for requesting a demo. Reply to this email with a couple of times that work for you, and we will schedule a quick walkthrough.\n\nBlessings,\nSacredScripture Team`
     )
     window.location.href = `mailto:${lead.email}?subject=${subject}&body=${body}`
     markContacted(lead.email)
