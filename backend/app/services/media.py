@@ -147,12 +147,19 @@ def generate_video_with_audio(video_path: str, audio_path: str, verse_text: str,
     hue_shift = {'Peace': 0.55, 'Hope': 0.16, 'Reflection': 0.70, 'Worship': 0.10, 'Reverence': 0.62}.get(mood, 0.55)
 
     vf = (
-        "geq=r='128+80*sin(2*PI*(X/W+T/60+{h}))':"
-        "g='90+60*sin(2*PI*(Y/H+T/75+{h}/2))':"
-        "b='140+70*sin(2*PI*(X/W+Y/H+T/90+{h}/3))',"
-        "noise=alls=4:allf=t+u,"
+        # Cymatics-inspired standing wave interference pattern
+        "geq="
+        "r='128+60*sin(2*PI*(sqrt((X-W/2)*(X-W/2)+(Y-H/2)*(Y-H/2))/W*10+T/6+{h}))"
+        "+40*sin(2*PI*(X/W*6+T/10+{h}/2))':"
+        "g='110+55*sin(2*PI*(sqrt((X-W/2)*(X-W/2)+(Y-H/2)*(Y-H/2))/W*9+T/7+{h}/3))"
+        "+35*sin(2*PI*(Y/H*5+T/11+{h}/4))':"
+        "b='140+50*sin(2*PI*(sqrt((X-W/2)*(X-W/2)+(Y-H/2)*(Y-H/2))/W*8+T/8+{h}/5))"
+        "+30*sin(2*PI*((X+Y)/(W+H)*5+T/12+{h}/6))',"
+        "eq=contrast=1.08:brightness=0.02:saturation=1.1,"
+        "gblur=sigma=0.6,"
         "drawtext=fontcolor=white:fontsize=56:font='Serif':"
         "text='{txt}':x=(w-text_w)/2:y=(h-text_h)/2:"
+        "box=1:boxcolor=black@0.35:boxborderw=20:"
         "alpha='if(lt(t,2),t/2,if(lt(t,{d}-2),0.96,({d}-t)/2))'"
     ).format(d=duration_seconds, txt=safe_text, h=hue_shift)
 
