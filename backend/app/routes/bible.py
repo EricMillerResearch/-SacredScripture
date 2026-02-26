@@ -17,6 +17,28 @@ def load_bible():
     return data
 
 
+TRANSLIT_MAP = {
+    'א': 'ʾ', 'ב': 'b', 'ג': 'g', 'ד': 'd', 'ה': 'h', 'ו': 'v', 'ז': 'z',
+    'ח': 'ḥ', 'ט': 'ṭ', 'י': 'y', 'כ': 'k', 'ך': 'k', 'ל': 'l', 'מ': 'm',
+    'ם': 'm', 'נ': 'n', 'ן': 'n', 'ס': 's', 'ע': 'ʿ', 'פ': 'p', 'ף': 'p',
+    'צ': 'ṣ', 'ץ': 'ṣ', 'ק': 'q', 'ר': 'r', 'ש': 'sh', 'ת': 't',
+    '־': ' ', ' ': ' ',
+}
+
+
+def transliterate(text: str) -> str:
+    out = []
+    for ch in text:
+        if ch in TRANSLIT_MAP:
+            out.append(TRANSLIT_MAP[ch])
+        elif '\u0591' <= ch <= '\u05C7':
+            # skip Hebrew diacritics (nikud/cantillation)
+            continue
+        else:
+            out.append(ch)
+    return ''.join(out)
+
+
 @router.get('/hebrew/books')
 def hebrew_books():
     data = load_bible()
@@ -50,7 +72,7 @@ def hebrew_chapter(book_code: str, chapter: int):
                 raise HTTPException(status_code=404, detail='Chapter not found')
             # ensure verse keys sorted numerically
             verses_sorted = [
-                {'verse': int(v), 'text': verses[v]}
+                {'verse': int(v), 'text': verses[v], 'translit': transliterate(verses[v])}
                 for v in sorted(verses.keys(), key=lambda x: int(x))
             ]
             return {'book': b['name'], 'code': b['code'], 'chapter': chapter, 'verses': verses_sorted}

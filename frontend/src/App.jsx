@@ -72,6 +72,7 @@ export default function App() {
   const [hebrewChapters, setHebrewChapters] = useState([])
   const [hebrewVerses, setHebrewVerses] = useState([])
   const [hebrewSelection, setHebrewSelection] = useState({ book: '', chapter: '', verse: '' })
+  const [showTranslit, setShowTranslit] = useState(true)
   const adminLimit = 10
 
   useEffect(() => {
@@ -325,8 +326,23 @@ export default function App() {
               </select>
             </div>
             {hebrewSelection.verse && (
-              <div className="hebrew-preview" dir="rtl">{form.verse_text}</div>
+              <div className="hebrew-preview">
+                <div dir="rtl">{form.verse_text}</div>
+                {showTranslit && (
+                  <div className="hebrew-translit">
+                    {hebrewVerses.find((v) => String(v.verse) === String(hebrewSelection.verse))?.translit || ''}
+                  </div>
+                )}
+              </div>
             )}
+            <label className="consent-row">
+              <input
+                type="checkbox"
+                checked={showTranslit}
+                onChange={(e) => setShowTranslit(e.target.checked)}
+              />
+              <span>Show transliteration</span>
+            </label>
           </div>
           <label>Mood</label>
           <select value={form.mood} onChange={(e) => setForm({ ...form, mood: e.target.value })}>

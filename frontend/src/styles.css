@@ -38,6 +38,7 @@ ul { margin:0; padding-left:18px; }
 .hebrew-picker { margin-top:8px; padding:12px; border-radius:12px; background:rgba(10,17,20,.55); border:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; gap:10px; }
 .hebrew-row { display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:8px; }
 .hebrew-preview { background:rgba(255,255,255,.08); border-radius:10px; padding:10px; font-size:1.05rem; line-height:1.7; }
+.hebrew-translit { margin-top:8px; font-size:.95rem; opacity:.8; font-family: "Manrope", sans-serif; }
 .lead-box { margin-top:16px; padding:14px; border-radius:14px; background:rgba(13,22,28,.75); border:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; gap:10px; }
 .lead-box p { margin:0; opacity:.75; }
 .lead-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
