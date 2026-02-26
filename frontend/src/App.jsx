@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
@@ -72,7 +72,14 @@ export default function App() {
   const [hebrewChapters, setHebrewChapters] = useState([])
   const [hebrewVerses, setHebrewVerses] = useState([])
   const [hebrewSelection, setHebrewSelection] = useState({ book: '', chapter: '', verse: '' })
-  const [showTranslit, setShowTranslit] = useState(true)
+  const [hebrewMode, setHebrewMode] = useState(false)
+  const [hebrewDisplayText, setHebrewDisplayText] = useState('')
+  const [readerRunning, setReaderRunning] = useState(false)
+  const [readerSpeed, setReaderSpeed] = useState(20)
+  const [readerIndex, setReaderIndex] = useState(0)
+  const [readerWords, setReaderWords] = useState([])
+  const canvasRef = useRef(null)
+  const audioRef = useRef(null)
   const adminLimit = 10
 
   useEffect(() => {
@@ -208,6 +215,94 @@ export default function App() {
     setHebrewVerses(data.verses || [])
   }
 
+  function wordToFrequency(word) {
+    const clean = word.toLowerCase().replace(/[^a-z]/g, '')
+    if (!clean) return 440
+    let base = 0
+    for (let i = 0; i < clean.length; i += 1) {
+      base += clean.charCodeAt(i) - 96
+    }
+    let growth = 0
+    for (let i = 0; i < clean.length; i += 1) {
+      growth += (i + 1) * (clean.charCodeAt(i) - 96)
+    }
+    const val = (base + (growth % 64)) % 256
+    return 220 + (val / 255) * 660
+  }
+
+  function playFrequency(freq, duration = 0.4) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext
+    if (!AudioContext) return
+    if (!audioRef.current) audioRef.current = new AudioContext()
+    const ctx = audioRef.current
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.value = freq
+    gain.gain.value = 0.001
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    const now = ctx.currentTime
+    gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration)
+    osc.start(now)
+    osc.stop(now + duration)
+  }
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    let frameId
+    const render = (time) => {
+      const width = canvas.width
+      const height = canvas.height
+      ctx.clearRect(0, 0, width, height)
+      const t = time * 0.0004
+      const freq = readerWords[readerIndex]?.freq || 3.0
+      const cx = width / 2
+      const cy = height / 2
+      const img = ctx.createImageData(width, height)
+      for (let y = 0; y < height; y += 2) {
+        for (let x = 0; x < width; x += 2) {
+          const dx = (x - cx) / width
+          const dy = (y - cy) / height
+          const r = Math.sqrt(dx * dx + dy * dy)
+          const wave = Math.sin(2 * Math.PI * (r * freq * 2 + t))
+          const wave2 = Math.sin(2 * Math.PI * (dx * freq + t * 0.7))
+          const v = (wave + 0.6 * wave2 + 1.6) / 3.2
+          const col = {
+            r: Math.floor(240 + 25 * v),
+            g: Math.floor(190 + 40 * v),
+            b: Math.floor(150 + 50 * v),
+          }
+          const idx = (y * width + x) * 4
+          img.data[idx] = col.r
+          img.data[idx + 1] = col.g
+          img.data[idx + 2] = col.b
+          img.data[idx + 3] = 255
+        }
+      }
+      ctx.putImageData(img, 0, 0)
+      frameId = requestAnimationFrame(render)
+    }
+    frameId = requestAnimationFrame(render)
+    return () => cancelAnimationFrame(frameId)
+  }, [readerIndex, readerWords])
+
+  useEffect(() => {
+    if (!readerRunning || readerWords.length === 0) return
+    const interval = Math.max(200, 60000 / readerSpeed)
+    const id = setInterval(() => {
+      setReaderIndex((prev) => {
+        const next = (prev + 1) % readerWords.length
+        playFrequency(readerWords[next].freq, 0.35)
+        return next
+      })
+    }, interval)
+    return () => clearInterval(id)
+  }, [readerRunning, readerSpeed, readerWords])
+
   function emailLead(lead) {
     const subject = encodeURIComponent('SacredScripture demo')
     const body = encodeURIComponent(
@@ -288,7 +383,12 @@ export default function App() {
           <label>Verse Reference</label>
           <input value={form.verse_reference} onChange={(e) => setForm({ ...form, verse_reference: e.target.value })} />
           <label>Verse Text</label>
-          <textarea rows={5} value={form.verse_text} onChange={(e) => setForm({ ...form, verse_text: e.target.value })} />
+          <textarea
+            rows={5}
+            value={hebrewMode ? hebrewDisplayText : form.verse_text}
+            onChange={(e) => setForm({ ...form, verse_text: e.target.value })}
+            disabled={hebrewMode}
+          />
 
           <div className="hebrew-picker">
             <h4>Hebrew Bible Picker</h4>
@@ -312,6 +412,8 @@ export default function App() {
                   const verse = hebrewVerses.find((v) => String(v.verse) === String(verseNum))
                   if (!verse) return
                   setHebrewSelection({ ...hebrewSelection, verse: verseNum })
+                  setHebrewMode(true)
+                  setHebrewDisplayText(verse.translit || '')
                   setForm({
                     ...form,
                     verse_reference: `${hebrewSelection.book} ${hebrewSelection.chapter}:${verseNum}`,
@@ -327,22 +429,21 @@ export default function App() {
             </div>
             {hebrewSelection.verse && (
               <div className="hebrew-preview">
-                <div dir="rtl">{form.verse_text}</div>
-                {showTranslit && (
-                  <div className="hebrew-translit">
-                    {hebrewVerses.find((v) => String(v.verse) === String(hebrewSelection.verse))?.translit || ''}
-                  </div>
-                )}
+                <div className="hebrew-translit">{hebrewDisplayText}</div>
               </div>
             )}
-            <label className="consent-row">
-              <input
-                type="checkbox"
-                checked={showTranslit}
-                onChange={(e) => setShowTranslit(e.target.checked)}
-              />
-              <span>Show transliteration</span>
-            </label>
+            {hebrewMode && (
+              <button
+                type="button"
+                className="mini"
+                onClick={() => {
+                  setHebrewMode(false)
+                  setHebrewDisplayText('')
+                }}
+              >
+                Edit manually
+              </button>
+            )}
           </div>
           <label>Mood</label>
           <select value={form.mood} onChange={(e) => setForm({ ...form, mood: e.target.value })}>
@@ -367,6 +468,49 @@ export default function App() {
         </section>
 
         <section className="right-panel card">
+          <div className="resonance-reader">
+            <div className="reader-header">
+              <h3>Resonance Reader</h3>
+              <div className="reader-controls">
+                <button
+                  type="button"
+                  className="mini"
+                  onClick={() => {
+                    const text = hebrewMode ? hebrewDisplayText : form.verse_text
+                    const words = text.split(/\\s+/).filter(Boolean)
+                    const mapped = words.map((w) => ({ word: w, freq: wordToFrequency(w) }))
+                    setReaderWords(mapped)
+                    setReaderIndex(0)
+                    if (mapped.length > 0) playFrequency(mapped[0].freq, 0.35)
+                    setReaderRunning(true)
+                  }}
+                >
+                  Start
+                </button>
+                <button type="button" className="mini" onClick={() => setReaderRunning(false)}>Pause</button>
+              </div>
+            </div>
+            <div className="reader-speed">
+              <span>Speed</span>
+              <input
+                type="range"
+                min="10"
+                max="80"
+                value={readerSpeed}
+                onChange={(e) => setReaderSpeed(Number(e.target.value))}
+              />
+              <span>{readerSpeed} wpm</span>
+            </div>
+            <canvas ref={canvasRef} width="600" height="340" className="reader-canvas" />
+            <div className="reader-ticker">
+              <div
+                className="ticker-text"
+                style={{ animationDuration: `${Math.max(12, 120 - readerSpeed)}s` }}
+              >
+                {(hebrewMode ? hebrewDisplayText : form.verse_text) || 'Select a verse to begin the resonance reader.'}
+              </div>
+            </div>
+          </div>
           <h3>Live Preview</h3>
           {previewUrl ? <video key={previewUrl} src={previewUrl} controls /> : <div className="empty-preview">Generate to preview video</div>}
           {previewUrl && <a className="download" href={previewUrl} download>Download MP4</a>}

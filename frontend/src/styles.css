@@ -38,7 +38,19 @@ ul { margin:0; padding-left:18px; }
 .hebrew-picker { margin-top:8px; padding:12px; border-radius:12px; background:rgba(10,17,20,.55); border:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; gap:10px; }
 .hebrew-row { display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:8px; }
 .hebrew-preview { background:rgba(255,255,255,.08); border-radius:10px; padding:10px; font-size:1.05rem; line-height:1.7; }
-.hebrew-translit { margin-top:8px; font-size:.95rem; opacity:.8; font-family: "Manrope", sans-serif; }
+.hebrew-translit { font-size:.95rem; opacity:.9; font-family: "Manrope", sans-serif; }
+.resonance-reader { margin-bottom:16px; padding:14px; border-radius:16px; background:rgba(13,22,28,.8); border:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; gap:10px; }
+.reader-header { display:flex; justify-content:space-between; align-items:center; }
+.reader-controls { display:flex; gap:8px; }
+.reader-speed { display:flex; align-items:center; gap:10px; font-size:.9rem; opacity:.85; }
+.reader-speed input { flex:1; }
+.reader-canvas { width:100%; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:#0b1014; }
+.reader-ticker { position:relative; overflow:hidden; background:#0d1520; border-radius:10px; border:1px solid rgba(255,255,255,.08); height:44px; }
+.ticker-text { position:absolute; white-space:nowrap; will-change:transform; animation: ticker 30s linear infinite; padding-left:100%; }
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
 .lead-box { margin-top:16px; padding:14px; border-radius:14px; background:rgba(13,22,28,.75); border:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; gap:10px; }
 .lead-box p { margin:0; opacity:.75; }
 .lead-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
