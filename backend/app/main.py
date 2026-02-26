@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import settings
 from .database import Base, engine
-from .routes import auth, generation, billing, admin
+from .routes import auth, generation, billing, admin, bible
 from .schemas import LeadRequest
 
 app = FastAPI(title='SacredScripture API', version='1.0.0')
@@ -26,6 +26,7 @@ app.include_router(auth.router)
 app.include_router(generation.router)
 app.include_router(billing.router)
 app.include_router(admin.router)
+app.include_router(bible.router)
 
 Path(settings.media_output_dir).mkdir(parents=True, exist_ok=True)
 app.mount('/media', StaticFiles(directory=settings.media_output_dir), name='media')

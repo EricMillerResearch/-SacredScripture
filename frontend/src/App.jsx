@@ -68,6 +68,10 @@ export default function App() {
   const [adminPage, setAdminPage] = useState(0)
   const [adminTotal, setAdminTotal] = useState(0)
   const [adminLoading, setAdminLoading] = useState(false)
+  const [hebrewBooks, setHebrewBooks] = useState([])
+  const [hebrewChapters, setHebrewChapters] = useState([])
+  const [hebrewVerses, setHebrewVerses] = useState([])
+  const [hebrewSelection, setHebrewSelection] = useState({ book: '', chapter: '', verse: '' })
   const adminLimit = 10
 
   useEffect(() => {
@@ -77,6 +81,13 @@ export default function App() {
       .then(setDashboard)
       .catch(() => setToken(''))
   }, [token])
+
+  useEffect(() => {
+    fetch(`${API_BASE}/bible/hebrew/books`)
+      .then((r) => r.json())
+      .then((data) => setHebrewBooks(data.books || []))
+      .catch(() => setHebrewBooks([]))
+  }, [])
 
   useEffect(() => {
     if (dashboard?.is_admin) {
@@ -177,6 +188,25 @@ export default function App() {
     await loadLeads()
   }
 
+  async function loadHebrewChapters(book) {
+    setHebrewChapters([])
+    setHebrewVerses([])
+    setHebrewSelection({ book, chapter: '', verse: '' })
+    if (!book) return
+    const res = await fetch(`${API_BASE}/bible/hebrew/${book}/chapters`)
+    const data = await res.json()
+    setHebrewChapters(data.chapters || [])
+  }
+
+  async function loadHebrewVerses(book, chapter) {
+    setHebrewVerses([])
+    setHebrewSelection({ book, chapter, verse: '' })
+    if (!book || !chapter) return
+    const res = await fetch(`${API_BASE}/bible/hebrew/${book}/${chapter}`)
+    const data = await res.json()
+    setHebrewVerses(data.verses || [])
+  }
+
   function emailLead(lead) {
     const subject = encodeURIComponent('SacredScripture demo')
     const body = encodeURIComponent(
@@ -258,6 +288,46 @@ export default function App() {
           <input value={form.verse_reference} onChange={(e) => setForm({ ...form, verse_reference: e.target.value })} />
           <label>Verse Text</label>
           <textarea rows={5} value={form.verse_text} onChange={(e) => setForm({ ...form, verse_text: e.target.value })} />
+
+          <div className="hebrew-picker">
+            <h4>Hebrew Bible Picker</h4>
+            <div className="hebrew-row">
+              <select value={hebrewSelection.book} onChange={(e) => loadHebrewChapters(e.target.value)}>
+                <option value="">Select book</option>
+                {hebrewBooks.map((b) => (
+                  <option key={b.code} value={b.code}>{b.name}</option>
+                ))}
+              </select>
+              <select value={hebrewSelection.chapter} onChange={(e) => loadHebrewVerses(hebrewSelection.book, e.target.value)}>
+                <option value="">Chapter</option>
+                {hebrewChapters.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <select
+                value={hebrewSelection.verse}
+                onChange={(e) => {
+                  const verseNum = e.target.value
+                  const verse = hebrewVerses.find((v) => String(v.verse) === String(verseNum))
+                  if (!verse) return
+                  setHebrewSelection({ ...hebrewSelection, verse: verseNum })
+                  setForm({
+                    ...form,
+                    verse_reference: `${hebrewSelection.book} ${hebrewSelection.chapter}:${verseNum}`,
+                    verse_text: verse.text,
+                  })
+                }}
+              >
+                <option value="">Verse</option>
+                {hebrewVerses.map((v) => (
+                  <option key={v.verse} value={v.verse}>{v.verse}</option>
+                ))}
+              </select>
+            </div>
+            {hebrewSelection.verse && (
+              <div className="hebrew-preview" dir="rtl">{form.verse_text}</div>
+            )}
+          </div>
           <label>Mood</label>
           <select value={form.mood} onChange={(e) => setForm({ ...form, mood: e.target.value })}>
             {moods.map((m) => <option key={m}>{m}</option>)}

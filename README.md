@@ -18,6 +18,10 @@ Guides:
 Public demo assets:
 - Place `demo.mp4` and `demo.wav` in `frontend/public/demo/`
 
+Hebrew Bible dataset:
+- `backend/data/hebrew_bible.json` is built from OSHB WLC XML.
+- Source repo (not committed): `data/oshb/`
+
 ## Stack
 - **Frontend:** React + Vite (dark minimal dashboard UI)
 - **Backend:** FastAPI + SQLAlchemy
