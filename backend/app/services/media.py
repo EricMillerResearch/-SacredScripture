@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from ..config import settings
+from ..services import text_resonance
 
 MOOD_PRESETS = {
     'Peace': {'key_freq': 261.63, 'tempo': 45, 'pad': 0.35},
@@ -63,10 +64,8 @@ def _text_preset(verse_text: str) -> dict:
     punctuation = sum(1 for ch in verse_text if ch in '.;:!?')
     punct_density = punctuation / max(1, len(verse_text))
 
-    # Key selection based on text hash for deterministic variety
-    seed = sum(ord(c) for c in verse_text) % len(KEY_FREQS)
-    key = list(KEY_FREQS.keys())[seed]
-    key_freq = KEY_FREQS[key]
+    # Key selection derived from resonance mapping
+    key_freq = text_resonance.verse_key_frequency(verse_text)
 
     # Tempo reacts to sentiment and punctuation cadence
     tempo = 42 + 18 * sentiment + 6 * avg_len / 6 + 40 * punct_density
@@ -75,7 +74,7 @@ def _text_preset(verse_text: str) -> dict:
     # Pad depth increases for positive sentiment
     pad = _clamp(0.32 + 0.12 * (sentiment + 1) / 2, 0.28, 0.50)
 
-    scale = SCALE_MAJOR if sentiment >= 0 else SCALE_MINOR
+    scale = text_resonance.verse_scale(verse_text, sentiment)
     return {'key_freq': key_freq, 'tempo': tempo, 'pad': pad, 'scale': scale}
 
 
@@ -144,7 +143,10 @@ def generate_ambient_wav(output_path: str, mood: str, duration_seconds: int, ver
 def generate_video_with_audio(video_path: str, audio_path: str, verse_text: str, mood: str, duration_seconds: int) -> str:
     Path(video_path).parent.mkdir(parents=True, exist_ok=True)
     safe_text = verse_text.replace(':', '\\:').replace("'", "\\'")
-    hue_shift = {'Peace': 0.55, 'Hope': 0.16, 'Reflection': 0.70, 'Worship': 0.10, 'Reverence': 0.62}.get(mood, 0.55)
+    if verse_text:
+        hue_shift = text_resonance.verse_hue_shift(verse_text)
+    else:
+        hue_shift = {'Peace': 0.55, 'Hope': 0.16, 'Reflection': 0.70, 'Worship': 0.10, 'Reverence': 0.62}.get(mood, 0.55)
 
     vf = (
         # Cymatics-inspired standing wave interference pattern

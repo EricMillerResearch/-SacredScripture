@@ -3,6 +3,26 @@ import { useEffect, useState } from 'react'
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 const moods = ['Peace', 'Hope', 'Reflection', 'Worship', 'Reverence']
+const sampleVerses = [
+  {
+    label: 'Psalm 23:1',
+    reference: 'Psalm 23:1',
+    text: 'The Lord is my shepherd; I shall not want.',
+  },
+  {
+    label: 'Psalm 19:7–9',
+    reference: 'Psalm 19:7–9',
+    text:
+      'The law of the Lord is perfect, refreshing the soul. The statutes of the Lord are trustworthy, making wise the simple. ' +
+      'The precepts of the Lord are right, giving joy to the heart. The commands of the Lord are radiant, giving light to the eyes. ' +
+      'The fear of the Lord is pure, enduring forever. The decrees of the Lord are firm, and all of them are righteous.',
+  },
+  {
+    label: 'Isaiah 40:31',
+    reference: 'Isaiah 40:31',
+    text: 'Those who hope in the Lord will renew their strength. They will soar on wings like eagles.',
+  },
+]
 const onboardingSteps = [
   { title: 'Create your account', detail: 'Sign up with an email and start your free trial.' },
   { title: 'Choose a verse', detail: 'Paste a passage and select a worship mood.' },
@@ -219,6 +239,21 @@ export default function App() {
 
       <main className="dashboard-layout">
         <section className="left-panel card">
+          <label>Sample Verses</label>
+          <select
+            onChange={(e) => {
+              const idx = Number(e.target.value)
+              if (Number.isNaN(idx)) return
+              const sample = sampleVerses[idx]
+              setForm({ ...form, verse_reference: sample.reference, verse_text: sample.text })
+            }}
+            defaultValue=""
+          >
+            <option value="" disabled>Pick a sample verse</option>
+            {sampleVerses.map((s, idx) => (
+              <option key={s.label} value={idx}>{s.label}</option>
+            ))}
+          </select>
           <label>Verse Reference</label>
           <input value={form.verse_reference} onChange={(e) => setForm({ ...form, verse_reference: e.target.value })} />
           <label>Verse Text</label>
