@@ -196,7 +196,7 @@ export default function App() {
         <div className="card auth-demo">
           <h2>Instant Demo</h2>
           <p>Watch a real output and download it instantly.</p>
-          <video className="demo-video" src={demoAssets.video} controls />
+          <video className="demo-video" src={demoAssets.video} autoPlay loop muted playsInline controls />
           <div className="demo-actions">
             <a className="download" href={demoAssets.video} download>Download MP4</a>
             <a className="download" href={demoAssets.audio} download>Download WAV</a>
