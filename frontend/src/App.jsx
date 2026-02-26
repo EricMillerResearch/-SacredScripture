@@ -69,11 +69,6 @@ export default function App() {
   const [adminTotal, setAdminTotal] = useState(0)
   const [adminLoading, setAdminLoading] = useState(false)
   const [hebrewBooks, setHebrewBooks] = useState([])
-  const [hebrewChapters, setHebrewChapters] = useState([])
-  const [hebrewVerses, setHebrewVerses] = useState([])
-  const [hebrewSelection, setHebrewSelection] = useState({ book: '', chapter: '', verse: '' })
-  const [hebrewMode, setHebrewMode] = useState(false)
-  const [hebrewDisplayText, setHebrewDisplayText] = useState('')
   const [readerRunning, setReaderRunning] = useState(false)
   const [readerSpeed, setReaderSpeed] = useState(20)
   const [readerIndex, setReaderIndex] = useState(0)
@@ -91,10 +86,7 @@ export default function App() {
   }, [token])
 
   useEffect(() => {
-    fetch(`${API_BASE}/bible/hebrew/books`)
-      .then((r) => r.json())
-      .then((data) => setHebrewBooks(data.books || []))
-      .catch(() => setHebrewBooks([]))
+    setHebrewBooks([])
   }, [])
 
   useEffect(() => {
@@ -196,24 +188,6 @@ export default function App() {
     await loadLeads()
   }
 
-  async function loadHebrewChapters(book) {
-    setHebrewChapters([])
-    setHebrewVerses([])
-    setHebrewSelection({ book, chapter: '', verse: '' })
-    if (!book) return
-    const res = await fetch(`${API_BASE}/bible/hebrew/${book}/chapters`)
-    const data = await res.json()
-    setHebrewChapters(data.chapters || [])
-  }
-
-  async function loadHebrewVerses(book, chapter) {
-    setHebrewVerses([])
-    setHebrewSelection({ book, chapter, verse: '' })
-    if (!book || !chapter) return
-    const res = await fetch(`${API_BASE}/bible/hebrew/${book}/${chapter}`)
-    const data = await res.json()
-    setHebrewVerses(data.verses || [])
-  }
 
   function wordToFrequency(word) {
     const clean = word.toLowerCase().replace(/[^a-z]/g, '')
@@ -385,66 +359,9 @@ export default function App() {
           <label>Verse Text</label>
           <textarea
             rows={5}
-            value={hebrewMode ? hebrewDisplayText : form.verse_text}
+            value={form.verse_text}
             onChange={(e) => setForm({ ...form, verse_text: e.target.value })}
-            disabled={hebrewMode}
           />
-
-          <div className="hebrew-picker">
-            <h4>Hebrew Bible Picker</h4>
-            <div className="hebrew-row">
-              <select value={hebrewSelection.book} onChange={(e) => loadHebrewChapters(e.target.value)}>
-                <option value="">Select book</option>
-                {hebrewBooks.map((b) => (
-                  <option key={b.code} value={b.code}>{b.name}</option>
-                ))}
-              </select>
-              <select value={hebrewSelection.chapter} onChange={(e) => loadHebrewVerses(hebrewSelection.book, e.target.value)}>
-                <option value="">Chapter</option>
-                {hebrewChapters.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-              <select
-                value={hebrewSelection.verse}
-                onChange={(e) => {
-                  const verseNum = e.target.value
-                  const verse = hebrewVerses.find((v) => String(v.verse) === String(verseNum))
-                  if (!verse) return
-                  setHebrewSelection({ ...hebrewSelection, verse: verseNum })
-                  setHebrewMode(true)
-                  setHebrewDisplayText(verse.translit || '')
-                  setForm({
-                    ...form,
-                    verse_reference: `${hebrewSelection.book} ${hebrewSelection.chapter}:${verseNum}`,
-                    verse_text: verse.text,
-                  })
-                }}
-              >
-                <option value="">Verse</option>
-                {hebrewVerses.map((v) => (
-                  <option key={v.verse} value={v.verse}>{v.verse}</option>
-                ))}
-              </select>
-            </div>
-            {hebrewSelection.verse && (
-              <div className="hebrew-preview">
-                <div className="hebrew-translit">{hebrewDisplayText}</div>
-              </div>
-            )}
-            {hebrewMode && (
-              <button
-                type="button"
-                className="mini"
-                onClick={() => {
-                  setHebrewMode(false)
-                  setHebrewDisplayText('')
-                }}
-              >
-                Edit manually
-              </button>
-            )}
-          </div>
           <label>Mood</label>
           <select value={form.mood} onChange={(e) => setForm({ ...form, mood: e.target.value })}>
             {moods.map((m) => <option key={m}>{m}</option>)}
@@ -476,7 +393,7 @@ export default function App() {
                   type="button"
                   className="mini"
                   onClick={() => {
-                    const text = hebrewMode ? hebrewDisplayText : form.verse_text
+                    const text = form.verse_text
                     const words = text.split(/\\s+/).filter(Boolean)
                     const mapped = words.map((w) => ({ word: w, freq: wordToFrequency(w) }))
                     setReaderWords(mapped)
@@ -507,7 +424,7 @@ export default function App() {
                 className="ticker-text"
                 style={{ animationDuration: `${Math.max(12, 120 - readerSpeed)}s` }}
               >
-                {(hebrewMode ? hebrewDisplayText : form.verse_text) || 'Select a verse to begin the resonance reader.'}
+                {form.verse_text || 'Select a verse to begin the resonance reader.'}
               </div>
             </div>
           </div>
