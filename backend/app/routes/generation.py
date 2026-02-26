@@ -58,7 +58,7 @@ def generate(payload: GenerateRequest, current_user: User = Depends(get_current_
     audio_path = str(Path(settings.media_output_dir) / f'{base_name}.wav')
     video_path = str(Path(settings.media_output_dir) / f'{base_name}.mp4')
 
-    generate_ambient_wav(audio_path, payload.mood, duration_seconds)
+    generate_ambient_wav(audio_path, payload.mood, duration_seconds, verse_text=payload.verse_text)
     generate_video_with_audio(video_path, audio_path, payload.verse_text, payload.mood, duration_seconds)
 
     generation = Generation(
